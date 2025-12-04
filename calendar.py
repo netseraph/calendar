@@ -44,7 +44,7 @@ def calendar(year):
     print(f"工作区共域{_columncount}列")
     # 设置工作区域每列列宽
     for i in range(_columncount):
-        _ws.column_dimensions[get_column_letter(SET.START_COLUMN + i)].width = 4
+        _ws.column_dimensions[get_column_letter(SET.START_COLUMN + i)].width = SET.COLUMN_WIDTH
 
     # 设置打印区域
     _top_left = f"{get_column_letter(SET.START_COLUMN)}{SET.START_ROW}"
