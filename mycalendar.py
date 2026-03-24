@@ -18,136 +18,6 @@ def is_holiday(year: int, month: int, day: int) -> tuple:
     return _r
 
 
-def calendar_month(year: int, month: int, style: int = 1, workpath: str = ""):
-    """
-    按年月制作日历
-    """
-    # _monthlist = CONF.MONTHDICT[1]
-    _weeklist = CONF.STYLEDICT[style][1]
-
-    # c = MyCalendar
-    _title = f"{year}年{month:02}月"
-    # filename = f'sched{year}{month:02}.xlsx'
-    # firstday =
-    # 创建一个Workbook对象
-    _wb = Workbook()
-
-    # 选择默认的工作表
-    _ws = _wb.active
-    _ws.title = _title
-
-    # 设置页边距 0.5incn=1.27cm
-    _ws.page_margins = PageMargins(
-        left=0.5, right=0.5, top=0.5, bottom=0.5, header=0, footer=0
-    )
-
-    # 设置纸张大小 B5
-    _ws.page_setup.paperSize = 13
-
-    # 设置纸张方向为纵向
-    _ws.page_setup.orientation = "portrait"
-
-    # 设置将整个工作表打印在一页
-    _ws.sheet_properties.pageSetUpPr.fitToPage = True
-    # 水平居中，垂直居中
-    _ws.print_options.horizontalCentered = True
-    _ws.print_options.verticalCentered = True
-
-    # 设置打印区域
-    _top_left = f"{get_column_letter(CONF.START_COLUMN)}{CONF.START_ROW}"
-    _bottom_right = f"{get_column_letter(CONF.START_COLUMN+13)}" f"{CONF.START_ROW+13}"
-    _ws.print_area = f"{_top_left}:{_bottom_right}"
-    # print(f"{_top_left}:{_bottom_right}")
-
-    # 标题-年月
-    _ws.row_dimensions[CONF.START_ROW].height = 40
-    _ws.merge_cells(
-        start_row=CONF.START_ROW,
-        start_column=CONF.START_COLUMN,
-        end_row=CONF.START_ROW,
-        end_column=CONF.START_COLUMN + 13,
-    )
-    _ws.cell(CONF.START_ROW, CONF.START_COLUMN, value=_title)
-    _ws.cell(CONF.START_ROW, CONF.START_COLUMN).alignment = CONF.CC_ALIGN
-    _ws.cell(CONF.START_ROW, CONF.START_COLUMN).font = CONF.TITLEFONT1
-
-    # 标题-星期
-    _ws.row_dimensions[CONF.START_ROW + 1].height = 20
-    for i in range(7):
-        _columnletter = get_column_letter(CONF.START_COLUMN + i * 2)
-        _ws.column_dimensions[_columnletter].width = 3
-        _columnletter = get_column_letter(CONF.START_COLUMN + i * 2 + 1)
-        _ws.column_dimensions[_columnletter].width = 9.5
-        _ws.merge_cells(
-            start_row=CONF.START_ROW + 1,
-            start_column=CONF.START_COLUMN + i * 2,
-            end_row=CONF.START_ROW + 1,
-            end_column=CONF.START_COLUMN + i * 2 + 1,
-        )
-        _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2, value=_weeklist[i])
-        _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).alignment = (
-            CONF.CC_ALIGN
-        )
-        _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).border = CONF.ALL_BORDER
-        _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2 + 1).border = (
-            CONF.ALL_BORDER
-        )
-        _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).font = CONF.TITLEFONT2
-
-        if i in (5, 6):
-            _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).fill = CONF.GRAYFILL
-
-    # 内容-日期
-    _offset = datetime.date(year, month, 1).weekday()
-    _cur_day = datetime.date(year, month, 1) - datetime.timedelta(days=_offset)
-
-    for i in range(6):
-        _ws.row_dimensions[CONF.START_ROW + 2 + i * 2].height = 20
-        _ws.row_dimensions[CONF.START_ROW + 3 + i * 2].height = 100
-        _cur_row = CONF.START_ROW + 2 + i * 2
-
-        for j in range(7):
-            _cur_column = CONF.START_COLUMN + j * 2
-            # 日期单元格
-            _ws.cell(_cur_row, _cur_column, value=_cur_day.day)
-            # 设置文字对其方式
-            _ws.cell(_cur_row, _cur_column).alignment = CONF.LT_ALIGN
-            # 设置边框
-            _ws.cell(_cur_row, _cur_column).border = CONF.L_BORDER
-
-            # 假期单元格
-            _holiday = is_holiday(_cur_day.year, _cur_day.month, _cur_day.day)
-            _ws.cell(_cur_row, _cur_column + 1, value=_holiday[1])
-            # 设置文字对其方式
-            _ws.cell(_cur_row, _cur_column + 1).alignment = CONF.RT_ALIGN
-            # 设置边框
-            _ws.cell(_cur_row, _cur_column + 1).border = CONF.R_BORDER
-
-            # 内容单元格
-            _ws.cell(_cur_row + 1, _cur_column).border = CONF.LB_BORDER
-            _ws.cell(_cur_row + 1, _cur_column + 1).border = CONF.RB_BORDER
-
-            # 根据是否当前月设置文字格式
-            if _cur_day.month == month:
-                _ws.cell(_cur_row, _cur_column).font = CONF.DETAILSFONT08
-                _ws.cell(_cur_row, _cur_column + 1).font = CONF.DETAILSFONT08
-            else:
-                _ws.cell(_cur_row, _cur_column).font = CONF.DETAILSFONT08G
-                _ws.cell(_cur_row, _cur_column + 1).font = CONF.DETAILSFONT08G
-
-            # 根据是否休息,或者非上班的周末设置单元格填充
-            if _holiday[0] == 0 or (j in (5, 6) and _holiday[0] == -1):
-                _ws.cell(_cur_row, _cur_column).fill = CONF.GRAYFILL
-                _ws.cell(_cur_row, _cur_column + 1).fill = CONF.GRAYFILL
-                _ws.cell(_cur_row + 1, _cur_column).fill = CONF.GRAYFILL
-                _ws.cell(_cur_row + 1, _cur_column + 1).fill = CONF.GRAYFILL
-
-            _cur_day = _cur_day + datetime.timedelta(days=1)
-
-    # 保存文件
-    _wb.save(f"{workpath}/Calendar_{year}{month:02}.xlsx")
-
-
 def calendar_year(year: int, style: int = 1, workpath: str = ""):
     """完整年度日历制作"""
     _monthlist = CONF.STYLEDICT[style][0]
@@ -156,7 +26,9 @@ def calendar_year(year: int, style: int = 1, workpath: str = ""):
     # 打开一个excel文件
     _wb = Workbook()
     _wb.properties.title = f"{year}年日历"
-    _wb.properties.creator = "Scrat"
+    _wb.properties.creator = "netseraph"
+    _wb.properties.author = "netseraph"
+    _wb.properties.company = "netseraph Studio"
 
     # 制作全年sheet
     _title = f"{year}年"
@@ -165,14 +37,14 @@ def calendar_year(year: int, style: int = 1, workpath: str = ""):
     _ws = _wb.active
 
     # 设置sheet标题
-    _ws.title = _title
+    _ws.title = f"{year}年"
 
     # 纸张设置
     # 设置纸张方向为纵向
     _ws.page_setup.orientation = "portrait"
     # 设置纸张大小 B5
     _ws.page_setup.paperSize = 13
-    # 设置页边距单位incn, 0.5incn=1.27cm,0.25incn=0.635cm
+    # 设置页边距单位incn,0.5incn=1.27cm,0.25incn=0.635cm
     _ws.page_margins = PageMargins(
         left=0.5, right=0.25, top=0.25, bottom=0.25, header=0, footer=0
     )
@@ -183,54 +55,56 @@ def calendar_year(year: int, style: int = 1, workpath: str = ""):
     _ws.print_options.verticalCentered = True
 
     # 设置工作区域行数
-    _rowcount = 2 + 10 * CONF.AREA_ROW
+    _rowcount = CONF.AREA_ROW * 10 + 2
     # 设置工作区域列数
-    _columncount = 8 * CONF.AREA_COLUMN + (CONF.AREA_COLUMN - 1)
+    _columncount = CONF.AREA_COLUMN * 8 + CONF.AREA_COLUMN - 1
 
     # 设置工作区域每列列宽
     for i in range(_columncount):
-        _ws.column_dimensions[get_column_letter(CONF.START_COLUMN + i)].width = (
-            CONF.COLUMN_WIDTH
-        )
+        _ws.column_dimensions[get_column_letter(i + 1)].width = CONF.COLUMN_WIDTH
 
     # 设置打印区域
-    _top_left = f"{get_column_letter(CONF.START_COLUMN)}{CONF.START_ROW}"
-    _bottom_right = (
-        f"{get_column_letter(CONF.START_COLUMN+_columncount-1)}"
-        f"{CONF.START_ROW+_rowcount-1}"
-    )
+    _top_left = f"{get_column_letter(1)}{2}"
+    _bottom_right = f"{get_column_letter(_columncount)}{_rowcount+1}"
     _ws.print_area = f"{_top_left}:{_bottom_right}"
+
+    # 设置视图模式
+    _ws.sheet_view.view = "pageBreakPreview"
+    # 隐藏网格线
+    _ws.sheet_view.showGridLines = False
+    # 显示比例
+    _ws.sheet_view.zoomScale = 85
 
     # 标题-年
     # 设置标题行高
-    _ws.row_dimensions[CONF.START_ROW].height = CONF.ROW_HEIGHT * 2
+    _ws.row_dimensions[2].height = CONF.ROW_HEIGHT * 2
     # 合并设置标题行单元格
     _ws.merge_cells(
-        start_row=CONF.START_ROW,
-        start_column=CONF.START_COLUMN,
-        end_row=CONF.START_ROW,
-        end_column=CONF.START_COLUMN + _columncount - 1,
+        start_row=2,
+        start_column=1,
+        end_row=2,
+        end_column=_columncount,
     )
     # 输入标题行内容
-    _ws.cell(row=CONF.START_ROW, column=CONF.START_COLUMN, value=_title)
+    _ws.cell(row=2, column=1, value=f"{year}年")
     # 设置对齐方式
-    _ws.cell(row=CONF.START_ROW, column=CONF.START_COLUMN).alignment = CONF.CC_ALIGN
+    _ws.cell(row=2, column=1).alignment = CONF.CC_ALIGN
     # 设置字体
-    _ws.cell(row=CONF.START_ROW, column=CONF.START_COLUMN).font = CONF.TITLEFONT1
+    _ws.cell(row=2, column=1).font = CONF.TITLEFONT1
 
     # 设置标题分割行高
-    _ws.row_dimensions[CONF.START_ROW + 1].height = CONF.ROW_HEIGHT_SEPARATOR
+    _ws.row_dimensions[3].height = CONF.ROW_HEIGHT_SEPARATOR
 
     # 将12个月分为AERA_ROW行CONF.AREA_COLUMN列12个区域
     # 区域行循环
     for _row in range(CONF.AREA_ROW):
         # 当前起始行
-        _cur_row = CONF.START_ROW + 2 + 10 * _row
+        _cur_row = 4 + 10 * _row
 
         # 区域列循环
         for _column in range(CONF.AREA_COLUMN):
             # 当前起始列
-            _cur_column = CONF.START_COLUMN + 9 * _column
+            _cur_column = 1 + 9 * _column
 
             # 标题-月
             _cur_month = _row * CONF.AREA_COLUMN + _column
@@ -322,17 +196,12 @@ def calendar_year(year: int, style: int = 1, workpath: str = ""):
         # print(_cur_row + 9)
 
     # 设置tips
-    _ws.cell(
-        row=CONF.START_ROW + _rowcount + 5,
-        column=CONF.START_COLUMN,
-        value="打印前，请设置表格中文字的字体。",
-    )
-    # 按月制作sheet
-    for _month in range(1, 13):
-        _title = f"{year}年{_month:02}月"
+    _ws.cell(row=1, column=1, value="打印前，请设置表格中文字的字体。")
 
+    # 制作每月sheet
+    for _month in range(1, 13):
         # 新建工作表
-        _ws = _wb.create_sheet(title=_title)
+        _ws = _wb.create_sheet(title=f"{_month:02}月")
 
         # 设置页边距单位incn, 0.5incn=1.27cm,0.25incn=0.635cm
         _ws.page_margins = PageMargins(
@@ -355,68 +224,62 @@ def calendar_year(year: int, style: int = 1, workpath: str = ""):
         _ws.print_options.verticalCentered = True
 
         # 设置打印区域
-        _top_left = f"{get_column_letter(CONF.START_COLUMN)}{CONF.START_ROW}"
-        _bottom_right = (
-            f"{get_column_letter(CONF.START_COLUMN+13)}" f"{CONF.START_ROW+13}"
-        )
+        _top_left = f"{get_column_letter(1)}{2}"
+        _bottom_right = f"{get_column_letter(14)}{15}"
         _ws.print_area = f"{_top_left}:{_bottom_right}"
-        # print(f"{_top_left}:{_bottom_right}")
+
+        # 设置视图模式
+        _ws.sheet_view.view = "pageBreakPreview"
+        # 隐藏网格线
+        _ws.sheet_view.showGridLines = False
+        # 显示比例
+        _ws.sheet_view.zoomScale = 85
 
         # 标题-年月
-        _ws.row_dimensions[CONF.START_ROW].height = 40
+        _ws.row_dimensions[2].height = 40
         _ws.merge_cells(
-            start_row=CONF.START_ROW,
-            start_column=CONF.START_COLUMN,
-            end_row=CONF.START_ROW,
-            end_column=CONF.START_COLUMN + 13,
+            start_row=2,
+            start_column=1,
+            end_row=2,
+            end_column=14,
         )
-        _ws.cell(CONF.START_ROW, CONF.START_COLUMN, value=_title)
-        _ws.cell(CONF.START_ROW, CONF.START_COLUMN).alignment = CONF.CC_ALIGN
-        _ws.cell(CONF.START_ROW, CONF.START_COLUMN).font = CONF.TITLEFONT1
+        _ws.cell(2, 1, value=f"{year}年{_month:02}月")
+        _ws.cell(2, 1).alignment = CONF.CC_ALIGN
+        _ws.cell(2, 1).font = CONF.TITLEFONT1
 
         # 标题-星期
-        _ws.row_dimensions[CONF.START_ROW + 1].height = 20
+        _ws.row_dimensions[3].height = 20
         for i in range(7):
-            _columnletter = get_column_letter(CONF.START_COLUMN + i * 2)
+            _columnletter = get_column_letter(i * 2 + 1)
             _ws.column_dimensions[_columnletter].width = 3
-            _columnletter = get_column_letter(CONF.START_COLUMN + i * 2 + 1)
+            _columnletter = get_column_letter(i * 2 + 2)
             _ws.column_dimensions[_columnletter].width = 9.5
             _ws.merge_cells(
-                start_row=CONF.START_ROW + 1,
-                start_column=CONF.START_COLUMN + i * 2,
-                end_row=CONF.START_ROW + 1,
-                end_column=CONF.START_COLUMN + i * 2 + 1,
+                start_row=3,
+                start_column=i * 2 + 1,
+                end_row=3,
+                end_column=i * 2 + 2,
             )
-            _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2, value=_weeklist[i])
-            _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).alignment = (
-                CONF.CC_ALIGN
-            )
-            _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).border = (
-                CONF.ALL_BORDER
-            )
-            _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2 + 1).border = (
-                CONF.ALL_BORDER
-            )
-            _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).font = (
-                CONF.TITLEFONT2
-            )
+            _ws.cell(3, i * 2 + 1, value=_weeklist[i])
+            _ws.cell(3, i * 2 + 1).alignment = CONF.CC_ALIGN
+            _ws.cell(3, i * 2 + 1).font = CONF.TITLEFONT2
+            _ws.cell(3, i * 2 + 1).border = CONF.ALL_BORDER
+            _ws.cell(3, i * 2 + 2).border = CONF.ALL_BORDER
 
             if i in (5, 6):
-                _ws.cell(CONF.START_ROW + 1, CONF.START_COLUMN + i * 2).fill = (
-                    CONF.GRAYFILL
-                )
+                _ws.cell(3, i * 2 + 1).fill = CONF.GRAYFILL
 
         # 内容-日期
         _offset = datetime.date(year, _month, 1).weekday()
         _cur_day = datetime.date(year, _month, 1) - datetime.timedelta(days=_offset)
 
         for i in range(6):
-            _ws.row_dimensions[CONF.START_ROW + 2 + i * 2].height = 20
-            _ws.row_dimensions[CONF.START_ROW + 3 + i * 2].height = 100
-            _cur_row = CONF.START_ROW + 2 + i * 2
+            _ws.row_dimensions[i * 2 + 4].height = 20
+            _ws.row_dimensions[i * 2 + 5].height = 100
+            _cur_row = i * 2 + 4
 
             for j in range(7):
-                _cur_column = CONF.START_COLUMN + j * 2
+                _cur_column = j * 2 + 1
                 # 日期单元格
                 _ws.cell(_cur_row, _cur_column, value=_cur_day.day)
                 # 设置文字对其方式
@@ -453,10 +316,6 @@ def calendar_year(year: int, style: int = 1, workpath: str = ""):
 
                 _cur_day = _cur_day + datetime.timedelta(days=1)
         # 设置tips
-        _ws.cell(
-            row=CONF.START_ROW + 20,
-            column=CONF.START_COLUMN,
-            value="打印前，请设置表格中文字的字体。",
-        )
+        _ws.cell(row=1, column=1, value="打印前，请设置表格中文字的字体。")
     # 保存文件
     _wb.save(f"{workpath}/Calendar_{year}.xlsx")

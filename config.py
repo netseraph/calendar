@@ -1,11 +1,11 @@
 """日历制作的参数"""
 
+import os
 from openpyxl.styles import Alignment, Border, Font, Side, PatternFill
 
-# 内容起始行
-START_ROW = 10
-# 内容起始列
-START_COLUMN = 2
+# 工作空间
+WORKPATH = f"{os.path.expanduser('~')}/MyWorkspace"
+
 # 每行行高
 ROW_HEIGHT = 20
 ROW_HEIGHT_SEPARATOR = 5
@@ -16,23 +16,25 @@ AREA_ROW = 4
 AREA_COLUMN = 12 // AREA_ROW
 
 
+# 设置字体
+TITLE_FONT_NAME = "方正小标宋_gbk"
+DETAILS_FONT_NAME = "方正书宋_GBK"
 # 标题字体
-TITLEFONT1 = Font(size=20)
-TITLEFONT2 = Font(size=10)
-# TITLEFONT3 = Font( size=10)
+TITLEFONT1 = Font(name=TITLE_FONT_NAME, size=20)
+TITLEFONT2 = Font(name=TITLE_FONT_NAME, size=10)
 # 内容字体
-DETAILSFONT07 = Font(size=7)
-DETAILSFONT07G = Font(size=7, color="c0c0c0")
-DETAILSFONT08 = Font(size=8)
-DETAILSFONT08G = Font(size=8, color="c0c0c0")
-DETAILSFONT09 = Font(size=9)
-DETAILSFONT09G = Font(size=9, color="c0c0c0")
-DETAILSFONT10 = Font(size=10)
-DETAILSFONT10G = Font(size=10, color="c0c0c0")
-DETAILSFONT11 = Font(size=11)
-DETAILSFONT11G = Font(size=11, color="c0c0c0")
-DETAILSFONT12 = Font(size=12)
-DETAILSFONT12G = Font(size=12, color="c0c0c0")
+DETAILSFONT07 = Font(name=DETAILS_FONT_NAME, size=7)
+DETAILSFONT07G = Font(name=DETAILS_FONT_NAME, size=7, color="c0c0c0")
+DETAILSFONT08 = Font(name=DETAILS_FONT_NAME, size=8)
+DETAILSFONT08G = Font(name=DETAILS_FONT_NAME, size=8, color="c0c0c0")
+DETAILSFONT09 = Font(name=DETAILS_FONT_NAME, size=9)
+DETAILSFONT09G = Font(name=DETAILS_FONT_NAME, size=9, color="c0c0c0")
+DETAILSFONT10 = Font(name=DETAILS_FONT_NAME, size=10)
+DETAILSFONT10G = Font(name=DETAILS_FONT_NAME, size=10, color="c0c0c0")
+DETAILSFONT11 = Font(name=DETAILS_FONT_NAME, size=11)
+DETAILSFONT11G = Font(name=DETAILS_FONT_NAME, size=11, color="c0c0c0")
+DETAILSFONT12 = Font(name=DETAILS_FONT_NAME, size=12)
+DETAILSFONT12G = Font(name=DETAILS_FONT_NAME, size=12, color="c0c0c0")
 # 文字对齐方式
 # 水平居中,垂直居中
 CC_ALIGN = Alignment(horizontal="center", vertical="center", wrap_text=True)
